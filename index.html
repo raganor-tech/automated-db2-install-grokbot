@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grok Bot Automated DB2 installation</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0b0d10; color: #e8eaed; font: 16px/1.55 ui-sans-serif, system-ui, sans-serif; }
+  .cover { min-height: 100vh; background: #000; display: flex; align-items: center; justify-content: center; }
+  .cover img { width: min(1100px, 100%); height: auto; display: block; }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 28px 16px 80px; }
+  .index { background: #16181d; border: 1px solid #2a2e36; border-radius: 16px; padding: 18px 20px 8px; margin: 18px 0 28px; }
+  .index h1 { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 18px; margin: 0 0 8px; }
+  .index ul { list-style: none; margin: 0; padding: 0; }
+  .index a { color: #8ab4ff; text-decoration: none; }
+  .index li { margin: 6px 0; }
+  .msg { background: #14171c; border: 1px solid #2a2e36; border-radius: 16px; padding: 14px 16px 6px; margin: 14px 0; }
+  .who { font-size: 13px; color: #f0997b; font-weight: 650; margin-bottom: 6px; }
+  h2 { font-size: 16px; margin: 0 0 8px; font-family: ui-monospace, Menlo, Consolas, monospace; }
+  p { margin: 8px 0 12px; }
+  a { color: #8ab4ff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; background: #22262e; padding: 0 4px; border-radius: 4px; }
+  .term { margin: 10px 0 14px; border-radius: 10px; overflow: hidden; border: 1px solid #30343c; background: #0c0e12; }
+  .bar { display: flex; align-items: center; gap: 6px; background: #1b1e24; padding: 8px 12px; color: #9aa0a6; font: 12px ui-monospace, Menlo, Consolas, monospace; }
+  .bar i { width: 10px; height: 10px; border-radius: 50%; background: #3a3f48; display: block; }
+  .bar i:nth-child(1) { background: #ff5f57; }
+  .bar i:nth-child(2) { background: #febc2e; }
+  .bar i:nth-child(3) { background: #28c840; }
+  .bar span { margin-left: 6px; }
+  pre { margin: 0; padding: 12px 14px 14px; overflow: auto; color: #d6deeb; font: 13.5px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre; }
+  table { width: 100%; border-collapse: collapse; font: 13px ui-monospace, Menlo, Consolas, monospace; margin: 8px 0 14px; }
+  th, td { border: 1px solid #30343c; padding: 6px 8px; text-align: left; }
+  ul { margin: 8px 0 14px; }
+</style>
+</head>
+<body>
+<section class="cover"><img src="cover.jpg" alt="Automated GROK BOT DB2 INSTALLATION"></section>
+<main class="wrap">
+  <nav class="index"><h1>Index</h1><ul class='idx'>
+    <li><a href="#1-install-wsl-on-windows">1. Install WSL on Windows</a></li><li><a href="#2-install-almalinux-9">2. Install AlmaLinux 9</a></li><li><a href="#3-db2-media">3. Db2 media</a></li><li><a href="#4-minimum-prerequisites">4. Minimum prerequisites</a></li><li><a href="#5-prerequisite-check">5. Prerequisite check</a></li><li><a href="#6-install-the-product-only">6. Install the product only</a></li><li><a href="#7-instance-users">7. Instance users</a></li><li><a href="#8-create-the-instance">8. Create the instance</a></li><li><a href="#9-almalinux-9-library-fix-required-before-db2start">9. AlmaLinux 9 library fix (required before db2start)</a></li><li><a href="#10-start-the-instance">10. Start the instance</a></li><li><a href="#11-validate">11. Validate</a></li><li><a href="#12-smoke-test-database">12. Smoke-test database</a></li><li><a href="#not-part-of-this-lab">Not part of this lab</a></li>
+  </ul></nav>
+  <article class="msg" id="intro"><div class="who">Grok Bot</div><p>A lab install of Db2 11.5.9 Community Edition (SERVER) inside AlmaLinux 9 on WSL2.</p>
+<p>The Windows and AlmaLinux section is the usual official setup. The Db2 section is the install that was actually run on this lab on 8 Sep 2026. Terminal blocks below are the saved lab output, pasted as plain text. There is no color in that output, and there are no screenshots. No passwords are included.</p></article><article class="msg" id="1-install-wsl-on-windows"><div class="who">Grok Bot</div><h2>1. Install WSL on Windows</h2><p>Use Windows 11 (or Windows 10 build 19041 or newer). Open PowerShell as Administrator.</p>
+<p>If WSL is not installed yet:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>PowerShell</span></div><pre>wsl --install --no-distribution</pre></div>
+<p>Restart Windows if it asks you to. Confirm the default is WSL 2:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>PowerShell</span></div><pre>wsl --status
+wsl --list --online</pre></div>
+<p>New installs from <code>wsl --install</code> use WSL 2. If an older distro is still on WSL 1:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>PowerShell</span></div><pre>wsl --set-version &lt;DistroName&gt; 2</pre></div>
+<p>Official reference: <a href="https://learn.microsoft.com/en-us/windows/wsl/install">Install WSL</a>.</p></article><article class="msg" id="2-install-almalinux-9"><div class="who">Grok Bot</div><h2>2. Install AlmaLinux 9</h2><p>AlmaLinux 9 is available from the WSL CLI (WSL 2.4.4 or newer) and from the Microsoft Store. From an Administrator PowerShell:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>PowerShell</span></div><pre>wsl --install AlmaLinux-9
+wsl -d AlmaLinux-9</pre></div>
+<p>The first launch asks you to create a Linux user. Give that user sudo. On this lab the account was <code>user1</code> (uid 1000) and sudo required a password.</p>
+<p>Check the distro and version:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>PowerShell</span></div><pre>wsl -l -v
+wsl -d AlmaLinux-9 -- cat /etc/os-release</pre></div>
+<p>You want <code>AlmaLinux-9</code> on version 2. Official reference: <a href="https://wiki.almalinux.org/documentation/wsl">AlmaLinux WSL</a>.</p></article><article class="msg" id="3-db2-media"><div class="who">Grok Bot</div><h2>3. Db2 media</h2><p>Download the Linux x64 server archive for 11.5.9 from IBM (<code>v11.5.9_linuxx64_server_dec.tar.gz</code>). The copy used in this lab had SHA256:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>terminal</span></div><pre>cb106df7840362fb9a344520ca9fb5d62357e49d357b077101b1f7f44f51062a</pre></div>
+<p>Inside AlmaLinux, stage it under a user-writable lab directory. This lab used <code>/ars/home/bin/db2-lab/v11.5.9</code>. <code>/ars</code> and <code>/ars/home</code> stayed <code>root:root</code>. <code>bin</code>, <code>db2-lab</code>, and <code>v11.5.9</code> were owned by the lab user.</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>AlmaLinux-9</span></div><pre>sudo mkdir -p /ars/home/bin/db2-lab/v11.5.9
+sudo chown &quot;$USER:$USER&quot; /ars/home/bin /ars/home/bin/db2-lab /ars/home/bin/db2-lab/v11.5.9
+cp /mnt/c/Users/&lt;you&gt;/Downloads/v11.5.9_linuxx64_server_dec.tar.gz /ars/home/bin/db2-lab/v11.5.9/
+cd /ars/home/bin/db2-lab/v11.5.9
+sha256sum v11.5.9_linuxx64_server_dec.tar.gz
+tar -xzf v11.5.9_linuxx64_server_dec.tar.gz</pre></div>
+<p>The installer is then at <code>/ars/home/bin/db2-lab/v11.5.9/server_dec/</code>.</p></article><article class="msg" id="4-minimum-prerequisites"><div class="who">Grok Bot</div><h2>4. Minimum prerequisites</h2><p>Only these packages were installed. 32-bit (<code>.i686</code>) packages were left out on purpose.</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>AlmaLinux-9</span></div><pre>sudo dnf install -y --setopt=install_weak_deps=False libaio numactl-libs ksh binutils</pre></div>
+<p>What landed on AlmaLinux 9:</p>
+<ul><li>libaio-0.3.111-13.el9</li><li>numactl-libs-2.0.19-3.el9</li><li>ksh-1.0.6-15.el9</li><li>binutils-2.35.2-72.el9</li><li>plus binutils-gold, diffutils, and elfutils-debuginfod-client</li></ul></article><article class="msg" id="5-prerequisite-check"><div class="who">Grok Bot</div><h2>5. Prerequisite check</h2><p>An earlier run failed on ksh and libaio before those packages were installed. After the <code>dnf</code> install:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>AlmaLinux-9</span></div><pre>cd /ars/home/bin/db2-lab/v11.5.9/server_dec
+./db2prereqcheck -i -v 11.5.9.0</pre></div>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>terminal</span></div><pre>Checking prerequisites for DB2 installation. Version &quot;11.5.9.0&quot;. Operating system &quot;Linux&quot;
+Validating &quot;kernel level &quot; ... Required minimum &quot;3.10.0&quot;. Actual &quot;6.18.33.2&quot;. Requirement matched.
+Validating &quot;Linux distribution &quot; ... Required RHEL 9 SP2. Actual Version 9 Service pack 8. Requirement matched.
+Validating &quot;ksh symbolic link&quot; ... Requirement matched.
+Validating &quot;libaio.so version &quot; ... Requirement matched.
+Validating 32-bit libstdc++.so.6 ... DBT3514W failed to find 32-bit library (warning).
+Validating 32-bit libpam ... DBT3514W failed to find &quot;/lib/libpam.so*&quot; (warning).</pre></div>
+<p>The full second run exited 0. Those two 32-bit lines are the only remaining warnings.</p></article><article class="msg" id="6-install-the-product-only"><div class="who">Grok Bot</div><h2>6. Install the product only</h2><p>No instance, no samples, no PCMK. Run as root from <code>server_dec</code>:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>AlmaLinux-9</span></div><pre>sudo ./db2_install \
+  -b /opt/ibm/db2/V11.5 \
+  -p SERVER \
+  -n \
+  -y \
+  -f NOTSAMP \
+  -f NOPCMK \
+  -l /ars/home/bin/db2-lab/v11.5.9/db2_install.log</pre></div>
+<p>Stdout:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>terminal</span></div><pre>The execution completed successfully.
+
+For more information see the DB2 installation log at
+&quot;/ars/home/bin/db2-lab/v11.5.9/db2_install.log&quot;.</pre></div>
+<p>Stderr (warnings only; the install still succeeded):</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>terminal</span></div><pre>Requirement not matched for DB2 database &quot;Server&quot; . Version: &quot;11.5.9.0&quot;.
+DBT3514W  The db2prereqcheck utility failed to find the following 32-bit library file: &quot;/lib/libpam.so*&quot;.
+DBT3514W  The db2prereqcheck utility failed to find the following 32-bit library file: &quot;libstdc++.so.6&quot;.
+Unit db2fmcd.service could not be found.</pre></div>
+<p><code>db2ls</code>:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>terminal</span></div><pre>Install Path                       Level   Fix Pack   Special Install Number   Install Date                  Installer UID
+/opt/ibm/db2/V11.5               11.5.9.0        0                            Tue Sep  8 22:31:20 2026 IST             0</pre></div>
+<p>Tail of the install log:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>terminal</span></div><pre>Installing DB2 file sets :.......Success
+Executing control tasks :.......Success
+Updating global registry :.......Success
+Starting DB2 Fault Monitor :.......Success
+Updating the db2ls and db2greg link :.......Success
+Registering DB2 licenses :.......Success
+Setting default global profile registry variables :.......Success
+Initializing instance list :.......Success
+Updating global profile registry :.......Success
+Required steps:
+Set up a DB2 instance to work with DB2.</pre></div></article><article class="msg" id="7-instance-users"><div class="who">Grok Bot</div><h2>7. Instance users</h2><p>System ids used on this lab:</p>
+<table><tr><th>Name</th><th>id</th><th>Home</th><th>Group</th></tr><tr><td>group db2iadm1</td><td>1001</td><td></td><td></td></tr><tr><td>group db2fsdm1</td><td>1002</td><td></td><td></td></tr><tr><td>user db2inst1</td><td>1001</td><td>/home/db2inst1</td><td>db2iadm1</td></tr><tr><td>user db2fenc1</td><td>1002</td><td>/home/db2fenc1</td><td>db2fsdm1</td></tr></table>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>AlmaLinux-9</span></div><pre>sudo groupadd -g 1001 db2iadm1
+sudo groupadd -g 1002 db2fsdm1
+sudo useradd -u 1001 -g db2iadm1 -m -d /home/db2inst1 db2inst1
+sudo useradd -u 1002 -g db2fsdm1 -m -d /home/db2fenc1 db2fenc1</pre></div>
+<p>Set a password for each user locally (<code>passwd</code> or <code>chpasswd</code>). Do not put passwords in git, scripts, or chat.</p></article><article class="msg" id="8-create-the-instance"><div class="who">Grok Bot</div><h2>8. Create the instance</h2><p>No DAS:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>AlmaLinux-9</span></div><pre>sudo /opt/ibm/db2/V11.5/instance/db2icrt -u db2fenc1 db2inst1</pre></div>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>terminal</span></div><pre>DB2 installation is being initialized.
+Total number of tasks to be performed: 4
+Task #1 Setting default global profile registry variables ... end
+Task #2 Initializing instance list ... end
+Task #3 Configuring DB2 instances ... end
+Task #4 Updating global profile registry ... end
+The execution completed successfully.
+For more information see the DB2 installation log at &quot;/tmp/db2icrt.log.47840&quot;.
+DBI1446I  The db2icrt command is running.
+DBI1070I  Program db2icrt completed successfully.</pre></div>
+<p><code>db2level</code>:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>terminal</span></div><pre>DB21085I  This instance or install (instance name, where applicable:
+&quot;db2inst1&quot;) uses &quot;64&quot; bits and DB2 code release &quot;SQL11059&quot; with level
+identifier &quot;060A010F&quot;.
+Informational tokens are &quot;DB2 v11.5.9.0&quot;, &quot;s2310270807&quot;, &quot;DYN2310270807AMD64&quot;,
+and Fix Pack &quot;0&quot;.
+Product is installed at &quot;/opt/ibm/db2/V11.5&quot;.</pre></div>
+<p>Side effect on this lab: <code>db2fmcd.service</code> ended up enabled. There was no intentional instance autostart.</p></article><article class="msg" id="9-almalinux-9-library-fix-required-before-db2start"><div class="who">Grok Bot</div><h2>9. AlmaLinux 9 library fix (required before db2start)</h2><p>The first <code>db2start</code> failed because the AWS SDK libraries were not on the library path. Setting <code>LD_LIBRARY_PATH</code> in the session printed the same error. <code>db2start</code> is setuid/setgid, and <code>db2profile</code> clears <code>LD_LIBRARY_PATH</code>.</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>terminal</span></div><pre>db2start: error while loading shared libraries: libaws-cpp-sdk-transfer.so: cannot open shared object file: No such file or directory</pre></div>
+<p><code>/home/db2inst1/sqllib/lib64</code> is a symlink to <code>/opt/ibm/db2/V11.5/lib64</code>, which is on the binary RUNPATH. As root, link the four AWS SDK libraries from the RHEL 9.2 build into that directory:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>AlmaLinux-9</span></div><pre>cd /opt/ibm/db2/V11.5/lib64
+for lib in \
+  libaws-cpp-sdk-transfer.so \
+  libaws-cpp-sdk-s3.so \
+  libaws-cpp-sdk-core.so \
+  libaws-cpp-sdk-kinesis.so
+do
+  sudo ln -s &quot;awssdk/RHEL/9.2/$lib&quot; &quot;$lib&quot;
+done</pre></div>
+<p>After the four symlinks, <code>ldd</code> resolved them through the instance lib64:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>terminal</span></div><pre>libaws-cpp-sdk-transfer.so =&gt; /home/db2inst1/sqllib/lib64/libaws-cpp-sdk-transfer.so
+libaws-cpp-sdk-s3.so =&gt; /home/db2inst1/sqllib/lib64/libaws-cpp-sdk-s3.so
+libaws-cpp-sdk-core.so =&gt; /home/db2inst1/sqllib/lib64/libaws-cpp-sdk-core.so
+libaws-cpp-sdk-kinesis.so =&gt; /home/db2inst1/sqllib/lib64/libaws-cpp-sdk-kinesis.so</pre></div></article><article class="msg" id="10-start-the-instance"><div class="who">Grok Bot</div><h2>10. Start the instance</h2><p>As <code>db2inst1</code>:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>AlmaLinux-9</span></div><pre>sudo su - db2inst1
+db2start</pre></div>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>terminal</span></div><pre>09/08/2026 23:12:15     0   0   SQL1063N  DB2START processing was successful.
+SQL1063N  DB2START processing was successful.</pre></div>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>terminal</span></div><pre>The current database manager instance is:  db2inst1</pre></div></article><article class="msg" id="11-validate"><div class="who">Grok Bot</div><h2>11. Validate</h2><p><code>db2val -o -a</code> is not valid on Linux. <code>-o</code> ignores <code>-i</code>, <code>-a</code>, <code>-b</code>, and <code>-s</code>.</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>terminal</span></div><pre>DBI1329I  Usage:
+ db2val [-h|-?]
+        [-o]
+        [-i inst_name1] | [-a]
+... -o ignores -i, -a, -b, and -s.</pre></div>
+<p>As <code>db2inst1</code>, <code>db2val -o</code>:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>terminal</span></div><pre>DBI1379I  The db2val command is running. This can take several minutes.
+DBI1335I  Installation file validation for the DB2 copy installed at
+      /opt/ibm/db2/V11.5 was successful.
+DBI1343I  The db2val command completed successfully. For details, see
+      the log file /tmp/db2val-260908_231614.log.</pre></div>
+<p>As root, <code>db2val -i db2inst1</code>:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>terminal</span></div><pre>DBI1379I  The db2val command is running. This can take several minutes.
+DBI1335I  Installation file validation for the DB2 copy installed at
+      /opt/ibm/db2/V11.5 was successful.
+DBI1339I  The instance validation for the instance db2inst1 was
+      successful.
+DBI1343I  The db2val command completed successfully. For details, see
+      the log file /tmp/db2val-260908_231831.log.</pre></div></article><article class="msg" id="12-smoke-test-database"><div class="who">Grok Bot</div><h2>12. Smoke-test database</h2><p>Still as <code>db2inst1</code>. This lab left the instance running and did not run <code>db2stop</code>. <code>LABDB</code> was created under <code>/home/db2inst1</code>. The saved run:</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span>terminal</span></div><pre>===CREATE===
+DB20000I  The CREATE DATABASE command completed successfully.
+===LIST===
+ System Database Directory
+ Number of entries in the directory = 1
+Database 1 entry:
+ Database alias                       = LABDB
+ Database name                        = LABDB
+ Local database directory             = /home/db2inst1
+ Database release level               = 15.00
+ Directory entry type                 = Indirect
+ Catalog database partition number    = 0
+===CONNECT===
+ Database server        = DB2/LINUXX8664 11.5.9.0
+ SQL authorization ID   = DB2INST1
+ Local database alias   = LABDB
+===SQL===
+DB20000I  The SQL command completed successfully.
+DB20000I  The SQL command completed successfully.
+ID          NOTE
+----------- ----------------------------------------------------------------
+          1 hello lab
+  1 record(s) selected.
+===RESET===
+DB20000I  The SQL command completed successfully.
+STEP_D_OK</pre></div></article><article class="msg" id="not-part-of-this-lab"><div class="who">Grok Bot</div><h2>Not part of this lab</h2><ul><li>DAS</li><li>a systemd unit or autostart for the instance</li><li>extra database manager configuration</li><li>extra users</li><li>32-bit pam</li><li><code>db2stop</code></li></ul></article>
+</main>
+</body></html>
