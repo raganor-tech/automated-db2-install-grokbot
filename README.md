@@ -1,3 +1,8 @@
+Simple check the HTML page :
+https://raganor-tech.github.io/automated-db2-install-grokbot/
+
+All work is done by raganor hence feel free to comment and ask query if any
+
 # IBM Db2 11.5.9 on Windows 11 with WSL2 and AlmaLinux 9
 
 A lab install of Db2 11.5.9 Community Edition (SERVER) inside AlmaLinux 9 on WSL2.
